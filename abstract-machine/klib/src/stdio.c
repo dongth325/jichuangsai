@@ -40,7 +40,103 @@ static int itoa(int n, char *s) {
   return i;  // 返回字符串长度
 }
 
+// 新增：long 转字符串函数
+/*static int ltoa(long n, char *s) {
+  int i = 0, sign = n;
+  if (sign < 0) n = -n;
+  
+  // 反向生成数字字符
+  do {
+    s[i++] = n % 10 + '0';
+  } while ((n /= 10) > 0);
+  
+  if (sign < 0) s[i++] = '-';
+  s[i] = '\0';
+
+  // 反转字符串
+  for (int j = 0; j < i / 2; j++) {
+    char temp = s[j];
+    s[j] = s[i - j - 1];
+    s[i - j - 1] = temp;
+  }
+  
+  return i;  // 返回字符串长度
+}*/
+
+
+
 // ... existing code ...
+
+
+
+/*int vsprintf(char *out, const char *fmt, va_list ap) {
+  char *buffer = out;
+  
+  while (*fmt) {
+    if (*fmt == '%') {
+      fmt++;
+      
+      // 处理格式标志
+      int zero_pad = 0;
+      int width = 0;
+      int is_long = 0;  // 新增：标记是否为长整型
+      
+      // 检查0填充
+      if (*fmt == '0') {
+        zero_pad = 1;
+        fmt++;
+      }
+      
+      // 解析宽度
+      while (*fmt >= '0' && *fmt <= '9') {
+        width = width * 10 + (*fmt - '0');
+        fmt++;
+      }
+      
+      // 检查长度修饰符
+      if (*fmt == 'l') {
+        is_long = 1;
+        fmt++;
+      }
+      
+      if (*fmt == 'd') {  // 处理 %d 和 %ld
+        long value;
+        if (is_long) {
+          value = va_arg(ap, long);  // 读取 long 类型参数
+        } else {
+          value = va_arg(ap, int);   // 读取 int 类型参数
+        }
+        
+        char temp[32];
+        int len;
+        
+        // 使用适合 long 的转换函数
+        if (is_long) {
+          len = ltoa(value, temp);  // 需要实现 ltoa 函数
+        } else {
+          len = itoa((int)value, temp);
+        }
+        
+        // 处理宽度和填充
+        if (width > len && zero_pad) {
+          for (int i = 0; i < width - len; i++) *buffer++ = '0';
+        }
+        
+        for (int i = 0; i < len; i++) *buffer++ = temp[i];
+      }
+      
+      // ... 其他格式处理 ...
+    } 
+    else {
+      *buffer++ = *fmt;
+    }
+    fmt++;
+  }
+  
+  *buffer = '\0';
+  return buffer - out;
+}*/
+
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
   char *buffer = out;

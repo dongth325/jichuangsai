@@ -1,3 +1,5 @@
+/*用于ysyxsoc运行rtt，里面有原本rtt的extra.ld内容，同时rtt中的extra文件应该为空，也就是使用extra2.ld*/
+
 ENTRY(_start)
 PHDRS {  fsbl PT_LOAD; text PT_LOAD; data PT_LOAD;rodata PT_LOAD; bss PT_LOAD; }
 
@@ -119,13 +121,80 @@ _data_lma = _rodata_lma + SIZEOF(.rodata);
   
 
 
+
+
+
+
+
+
+/* 添加 .data.extra 段，放在 .data 段后面 */
+  _data_extra_lma = _data_lma + SIZEOF(.data);
  
+  .data.extra : AT(_data_extra_lma) {
+        /*由8字节改成四字对齐，因为必须要保证大段的vma和定义的_data_extra_vma_start完全相同，同时lma和定义的lma也必须完全相同，注意是大段*/
+    . = ALIGN(4);
+    _data_extra_vma_start = .;    /*手动添加data extra开始地址*/
 
-_bss_lma = _data_lma + SIZEOF(.data);
+. = ALIGN(8);
+    /* section information for finsh shell */
+    __fsymtab_start = .;
+    KEEP(*(FSymTab))
+    __fsymtab_end = .;
+    . = ALIGN(8);
+    __vsymtab_start = .;
+    KEEP(*(VSymTab))
+    __vsymtab_end = .;
+    . = ALIGN(8);
 
-  /* BSS段 - 只需在SRAM中分配空间并清零 */
+    /* section information for initial. */
+    . = ALIGN(8);
+    __rt_init_start = .;
+    KEEP(*(SORT(.rti_fn*)))
+    __rt_init_end = .;
+    . = ALIGN(8);
 
-  .bss  :AT(_bss_lma) {
+    __rt_utest_tc_tab_start = .;
+    KEEP(*(UtestTcTab))
+    __rt_utest_tc_tab_end = .;
+
+    . = ALIGN(8);
+    __am_apps_data_start = .;
+    *(__am_apps.data*)
+    *(__am_apps.sdata*)
+    __am_apps_data_end = .;
+    . = ALIGN(8);
+
+    _data_extra_vma_end = ABSOLUTE(_data_extra_vma_start + SIZEOF(.data.extra));   /*手动添加data extra结束地址*/
+  } >psram : data
+
+
+
+
+
+
+  _bss_extra_lma = _data_extra_lma + SIZEOF(.data.extra);
+
+  .bss.extra : AT(_bss_extra_lma){
+    . = ALIGN(8);
+    __am_apps_bss_start = .;
+    *(__am_apps.bss*)
+    *(__am_apps.sbss*)
+    *(__am_apps.scommon*)
+    __am_apps_bss_end = .;
+    . = ALIGN(8);
+  } >psram : bss
+
+
+
+
+
+
+
+_bss_lma = _bss_extra_lma + SIZEOF(.bss.extra);
+
+  /* BSS段  */
+
+  .bss  : AT(_bss_lma) {
      . = ALIGN(4);
    
    _bss_start = .;
@@ -138,6 +207,14 @@ _bss_lma = _data_lma + SIZEOF(.data);
 
  } >psram
   
+
+
+
+
+
+
+
+
   /* 记录数据和BSS段结束后的位置 */
   _prog_end = .;
 

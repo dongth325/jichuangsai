@@ -317,7 +317,7 @@ void load_memory(const char *program_path, size_t &program_size) {
 
     if (program_size > MEM_SIZE) {
         std::cerr << "Program size (" << program_size << " bytes) exceeds memory size (" << MEM_SIZE << " bytes)." << std::endl;
-        exit(1);
+exit(1);
     }
 
     infile.read(reinterpret_cast<char *>(memory), program_size);
@@ -435,7 +435,8 @@ void exec_once(NpcState *s) {
     
     // 获取旧的PC值
     uint32_t old_pc = get_pc_value();
-    
+     // 判断是否需要记录波形
+    bool record_wave = (old_pc >= 0x800000f8);//因为运行rtt bootloader部分太大了，只记录bootloader之后的波形
   
      static int cycle_count = 0;  // 静态计数器，确保在函数调用
 
@@ -455,26 +456,26 @@ void exec_once(NpcState *s) {
 
         s->top->clock = 0;
         s->top->eval();
-        if (tfp) tfp->dump(main_time++);
-        
+       // if (tfp) tfp->dump(main_time++);
+            if (record_wave && tfp) tfp->dump(main_time++);
         s->top->eval();
-        if (tfp) tfp->dump(main_time++);
-        
+      //  if (tfp) tfp->dump(main_time++);
+            if (record_wave && tfp) tfp->dump(main_time++);
    
     
         
         // 时钟上升沿
         s->top->clock = 1;
         s->top->eval();
-        if (tfp) tfp->dump(main_time++);
-        
+        //if (tfp) tfp->dump(main_time++);
+            if (record_wave && tfp) tfp->dump(main_time++);
         s->top->eval();
-        if (tfp) tfp->dump(main_time++);
-        
+       // if (tfp) tfp->dump(main_time++);
+            if (record_wave && tfp) tfp->dump(main_time++);
        
                cycle_count++;  // 增加周期计数
-        if (cycle_count >= 15000) {
-            std::cout << "\nError: No new instruction received for 15000 cycles, simulation terminated" << std::endl;
+        if (cycle_count >= 100000) {
+            std::cout << "\nError: No new instruction received for 100000 cycles, simulation terminated" << std::endl;
          npc_state.ebreak_encountered = true;
             return;
         }
@@ -487,11 +488,9 @@ void exec_once(NpcState *s) {
 
         // 更新当前PC
         s->pc = get_pc_value();
-        //printf("11111pc = %08x\n",s->pc);
-        //printf("11111 if allow in = %08x\n",get_if_allow_in());
+       
     } while (!get_if_allow_in());
-    //printf("222222pc = %08x\n",s->pc);
-   // printf("222222 if allow in = %08x\n",get_if_allow_in());
+   
     // 更新指令计数
     s->inst_count++;
     
@@ -527,7 +526,7 @@ void exec_once(NpcState *s) {
        
     
     // 执行DiffTest
- //   difftest_step(s->top, old_pc, s->pc);
+    difftest_step(s->top, old_pc, s->pc);
 //111111111111111111111111111111111111111111111111111111111111
 
 
